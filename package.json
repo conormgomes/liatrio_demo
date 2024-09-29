@@ -1,0 +1,22 @@
+{
+  "name": "liatrio_demo",
+  "version": "1.0.0",
+  "description": "simple express app for liatrio interview demo",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/conormgomes/liatrio_demo.git"
+  },
+  "author": "Conor Gomes",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/conormgomes/liatrio_demo/issues"
+  },
+  "homepage": "https://github.com/conormgomes/liatrio_demo#readme",
+  "dependencies": {
+    "express": "^4.21.0"
+  }
+}
