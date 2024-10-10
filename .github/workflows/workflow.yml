@@ -2,15 +2,17 @@ name: Test, Build, and Push Docker image
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, workflow-testing ]
 
 jobs:
-  build:
+  install:
     runs-on: ubuntu-latest
-    
     steps:
       - uses: actions/checkout@v4
 
+  test:
+    runs-on: ubuntu-latest
+    steps:
       - name: Build Docker image
         run: docker build . -t git-image
 
@@ -20,6 +22,9 @@ jobs:
       - name: Run tests
         uses: liatrio/github-actions/apprentice-action@0b41561cca6822cc8d880fe0e49e7807a41fdf91
 
+  push:
+    runs-on: ubuntu-latest
+    steps:
       - name: Log in to Docker
         env:
           docker_user: ${{secrets.DOCKER_USERNAME}}
@@ -33,3 +38,5 @@ jobs:
         run: |
           docker tag git-image conormgomes/liatrio_demo:$TIME_NOW
           docker push conormgomes/liatrio_demo:$TIME_NOW
+          docker tag git-image conormgomes/liatrio_demo:latest
+          docker push conormgomes/liatrio_demo:latest
