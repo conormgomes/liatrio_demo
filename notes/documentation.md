@@ -23,3 +23,14 @@
 - ENV = environment variables
 - EXPOSE = exposes port
 - CMD = final command that will run when container starts
+
+
+### EKS
+- cluster config  --> hard to find documentation on config file for eksctl
+	- schema: https://eksctl.io/usage/schema/
+	- examples: https://github.com/eksctl-io/eksctl/tree/main/examples
+- eksctl create cluster --name {} --region us-west-2 --nodegroup-name {} --node-type t2.small --nodes 2 --nodes-min 1 --nodes-max 3 --managed
+- kubectl apply -f {}
+- eksctl delete cluster --name {}
+
+- configure IAM account (aws-auth.yaml)
