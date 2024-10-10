@@ -1,0 +1,20 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: node-deployment
+spec:
+  replicas: 2
+  selector:
+    matchLabels: 
+      app: node-app
+  template:
+    metadata:
+      labels:
+        app: node-app
+    spec:
+      containers:
+        - name: node-app
+          image: conormgomes/liatrio_demo:1727578846
+          ports:
+            - containerPort: 80
+          imagePullPolicy: Always
