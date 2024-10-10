@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: node-app
-          image: conormgomes/liatrio_demo:1727578846
+          image: conormgomes/liatrio_demo:latest
           ports:
             - containerPort: 80
           imagePullPolicy: Always
