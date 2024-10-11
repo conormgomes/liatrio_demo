@@ -2,7 +2,7 @@ name: Test, Build, and Push Docker image
 
 on:
   push:
-    branches: [ main, workflow-testing ]
+    branches: [ main, k8s-workflow ]
 
 jobs:
   build-test-push:
