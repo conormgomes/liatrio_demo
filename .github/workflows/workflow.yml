@@ -40,3 +40,24 @@ jobs:
           docker push conormgomes/liatrio_demo:$TIME_NOW
           docker tag git-image conormgomes/liatrio_demo:latest
           docker push conormgomes/liatrio_demo:latest
+      
+      - name: Authenticate AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-region: us-west-2
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+      - name: Install kubectl
+        run: |
+          sudo apt update
+          sudo apt install snapd
+          sudo snap install kubectl --classic
+
+      - name: Connect AWS to kubectl
+        run: |
+          aws eks update-kubeconfig --region us-west-2 --name test-cluster
+
+      - name: Update deployment with new image
+        run: |
+          kubectl set image deployment/node-deployment node-app=conormgomes/liatrio_demo:$TIME_NOW
