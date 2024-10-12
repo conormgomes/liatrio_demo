@@ -46,7 +46,7 @@ jobs:
       - name: Edit deployment.yaml
         run: |
           cp ./kube_configs/deployment.yaml ./kube_configs/deployment_old.yaml
-          sed -r -i 's/conormgomes\/liatrio_demo:.*/conormgomes\/liatrio_demo:'$TIME_NOW'/' deployment.yaml
+          sed -r -i 's/conormgomes\/liatrio_demo:.*/conormgomes\/liatrio_demo:'$TIME_NOW'/' ./kube_configs/deployment.yaml
       
       - name: Authenticate AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
