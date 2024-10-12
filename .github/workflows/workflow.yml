@@ -2,7 +2,7 @@ name: Test, Build, and Push Docker image
 
 on:
   push:
-    branches: [ main, k8s-workflow ]
+    branches: [ main, declarative-testing ]
 
 jobs:
   build-test-push:
@@ -31,8 +31,10 @@ jobs:
           docker_pass: ${{secrets.DOCKER_PASSWORD}}
         run: docker login -u $docker_user -p $docker_pass
 
-      - name: Generate tag number
-        run: echo "TIME_NOW=$(date +%s)" >> $GITHUB_ENV
+      - name: Generate tag number and commit hash
+        run: |
+          echo "TIME_NOW=$(date +%s)" >> $GITHUB_ENV
+          echo "sha_short=$(git rev-parse --short "$GITHUB_SHA")" >> "$GITHUB_ENV"
 
       - name: Push to Docker Hub
         run: |
@@ -40,6 +42,11 @@ jobs:
           docker push conormgomes/liatrio_demo:$TIME_NOW
           docker tag git-image conormgomes/liatrio_demo:latest
           docker push conormgomes/liatrio_demo:latest
+
+      - name: Edit deployment.yaml
+        run: |
+          cp ./kube_configs/deployment.yaml ./kube_configs/deployment_old.yaml
+          sed -r -i 's/conormgomes\/liatrio_demo:.*/conormgomes\/liatrio_demo:'$TIME_NOW'/' ./kube_configs/deployment.yaml
       
       - name: Authenticate AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
@@ -60,4 +67,12 @@ jobs:
 
       - name: Update deployment with new image
         run: |
-          kubectl set image deployment/node-deployment node-app=conormgomes/liatrio_demo:$TIME_NOW
+          kubectl apply -f ./kube_configs/deployment.yaml
+
+      - name: Change deployment.yaml in repo
+        run: |
+          git config --global user.name 'conormgomes'
+          git config --global user.email 'gomesconor@gmail.com'
+          git add ./kube_configs/deployment.yaml ./kube_configs/deployment_old.yaml
+          git commit -m "Automated update of deployment.yaml for Commit ${{ env.sha_short }} [skip actions]"
+          git push origin declarative-testing
