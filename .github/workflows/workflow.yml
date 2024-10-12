@@ -2,7 +2,7 @@ name: Test, Build, and Push Docker image
 
 on:
   push:
-    branches: [ main, declarative-testing ]
+    branches: [ main ]
 
 jobs:
   build-test-push:
@@ -40,8 +40,6 @@ jobs:
         run: |
           docker tag git-image conormgomes/liatrio_demo:$TIME_NOW
           docker push conormgomes/liatrio_demo:$TIME_NOW
-          docker tag git-image conormgomes/liatrio_demo:latest
-          docker push conormgomes/liatrio_demo:latest
 
       - name: Edit deployment.yaml
         run: |
@@ -75,4 +73,4 @@ jobs:
           git config --global user.email 'gomesconor@gmail.com'
           git add ./kube_configs/deployment.yaml ./kube_configs/deployment_old.yaml
           git commit -m "Automated update of deployment.yaml for Commit ${{ env.sha_short }} [skip actions]"
-          git push origin declarative-testing
+          git push origin main
