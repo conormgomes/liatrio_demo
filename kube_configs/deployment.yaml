@@ -27,7 +27,7 @@ spec:
               topologyKey: kubernetes.io/hostname
       containers:
         - name: node-app
-          image: conormgomes/liatrio_demo:1728773285
+          image: conormgomes/liatrio_demo:1728773825
           ports:
             - containerPort: 80
           imagePullPolicy: Always
