@@ -25,6 +25,7 @@ spec:
                 matchLabels:
                   app: node-app
               topologyKey: kubernetes.io/hostname
+            weight: 50
       containers:
         - name: node-app
           image: conormgomes/liatrio_demo:1728773825
