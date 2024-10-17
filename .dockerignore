@@ -1,0 +1,6 @@
+.github/
+kube_configs/
+notes/
+.gitignore
+README.md
+node_modules/

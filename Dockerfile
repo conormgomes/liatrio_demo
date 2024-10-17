@@ -1,9 +1,20 @@
-FROM node:21.7.3-alpine
+FROM node:20.18 as builder
 
-COPY index.js package.json package-lock.json /
+WORKDIR /app
 
-EXPOSE 80
+COPY index.js package.json package-lock.json /app
 
 RUN npm install
 
-CMD node index.js
+
+FROM gcr.io/distroless/nodejs20-debian12
+
+USER 1000
+
+WORKDIR /app
+
+COPY --from=builder /app /app
+
+EXPOSE 80
+
+CMD ["./index.js"]
