@@ -6,7 +6,7 @@ on:
 
 jobs:
   build-test-push:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -20,10 +20,6 @@ jobs:
       - name: Run tests
         id: testing
         uses: liatrio/github-actions/apprentice-action@0b41561cca6822cc8d880fe0e49e7807a41fdf91
-
-      - name: Confirm tests
-        if: steps.testing.outcome != 'success'
-        run: exit 1
 
       - name: Log in to Docker
         env:
@@ -74,3 +70,19 @@ jobs:
           git add ./kube_configs/deployment.yaml ./kube_configs/deployment_old.yaml
           git commit -m "Automated update of deployment.yaml for Commit ${{ env.sha_short }} [skip actions]"
           git push origin main
+
+      - name: Check files changes
+        id: changed-files
+        uses: tj-actions/changed-files@v45
+        with:
+          files: |
+            kube_configs/**
+            index.js
+      
+      - name: Did they change?
+        if: steps.changed-files.outputs.any_changed == 'true'
+        run: |
+          echo "IT'S WORKING"
+          for file in ${{ steps.changed-files.outputs.all_changed_files }}; do
+            echo "$file was changed"
+          done
