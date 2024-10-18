@@ -17,15 +17,15 @@ spec:
       labels:
         app: node-app
     spec:
-      affinity:
-        podAntiAffinity:
-          preferredDuringSchedulingIgnoredDuringExecution:
-          - podAffinityTerm:
-              labelSelector:
-                matchLabels:
-                  app: node-app
-              topologyKey: kubernetes.io/hostname
-            weight: 50
+      # affinity:
+      #   podAntiAffinity:
+      #     preferredDuringSchedulingIgnoredDuringExecution:
+      #     - podAffinityTerm:
+      #         labelSelector:
+      #           matchLabels:
+      #             app: node-app
+      #         topologyKey: kubernetes.io/hostname
+      #       weight: 50
       containers:
         - name: node-app
           image: conormgomes/liatrio_demo:1729294938
