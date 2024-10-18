@@ -35,6 +35,11 @@ jobs:
           echo "env.service_change=${{ contains(steps.changed-files.outputs.modified_files, 'service.yaml')}}" >> $GITHUB_ENV
           echo "env.hpa_change=${{ contains(steps.changed-files.outputs.modified_files, 'hpa.yaml')}}" >> $GITHUB_ENV
 
+      - name: Testing
+        run: |
+          echo ${{ env.TIME_NOW }}
+          echo ${{ env.sha_short }} 
+
   test-scope:
     runs-on: ubuntu-22.04
     needs: [ generate-variables ]
