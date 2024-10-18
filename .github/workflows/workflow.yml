@@ -21,8 +21,8 @@ jobs:
 
       - name: Generate tag number and commit hash
         run: |
-          echo "env.TIME_NOW=$(date +%s)" >> $GITHUB_ENV
-          echo "env.sha_short=$(git rev-parse --short "$GITHUB_SHA")" >> "$GITHUB_ENV"
+          echo "TIME_NOW=$(date +%s)" >> $GITHUB_ENV
+          echo "sha_short=$(git rev-parse --short "$GITHUB_SHA")" >> "$GITHUB_ENV"
 
       - name: Check file changes
         id: changed-files
@@ -30,10 +30,10 @@ jobs:
 
       - name: Generate change bools
         run: |
-          echo "env.node_change=${{ (contains(steps.changed-files.outputs.modified_files, 'index.js')) || (contains(steps.changed-files.outputs.modified_files, 'package.json')) || (contains(steps.changed-files.outputs.modified_files, 'package-lock.json')) || (contains(steps.changed-files.outputs.modified_files, 'Dockerfile')) }}" >> $GITHUB_ENV
-          echo "env.deploy_change=${{ contains(steps.changed-files.outputs.modified_files, 'deployment.yaml')}}" >> $GITHUB_ENV
-          echo "env.service_change=${{ contains(steps.changed-files.outputs.modified_files, 'service.yaml')}}" >> $GITHUB_ENV
-          echo "env.hpa_change=${{ contains(steps.changed-files.outputs.modified_files, 'hpa.yaml')}}" >> $GITHUB_ENV
+          echo "node_change=${{ (contains(steps.changed-files.outputs.modified_files, 'index.js')) || (contains(steps.changed-files.outputs.modified_files, 'package.json')) || (contains(steps.changed-files.outputs.modified_files, 'package-lock.json')) || (contains(steps.changed-files.outputs.modified_files, 'Dockerfile')) }}" >> $GITHUB_ENV
+          echo "deploy_change=${{ contains(steps.changed-files.outputs.modified_files, 'deployment.yaml')}}" >> $GITHUB_ENV
+          echo "service_change=${{ contains(steps.changed-files.outputs.modified_files, 'service.yaml')}}" >> $GITHUB_ENV
+          echo "hpa_change=${{ contains(steps.changed-files.outputs.modified_files, 'hpa.yaml')}}" >> $GITHUB_ENV
 
       - name: Testing
         run: |
