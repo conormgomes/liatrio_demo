@@ -22,9 +22,7 @@ jobs:
 
       - name: Generate change bools
         run: |
-          echo "index_change=${{ contains(steps.changed-files.outputs.modified_files, 'index.js')}}" >> $GITHUB_ENV
-          echo "package_change=${{ contains(steps.changed-files.outputs.modified_files, 'package.json')}}" >> $GITHUB_ENV
-          echo "lock_change=${{ contains(steps.changed-files.outputs.modified_files, 'package-lock.json')}}" >> $GITHUB_ENV
+          echo "node_change=${{ (contains(steps.changed-files.outputs.modified_files, 'index.js')) || (contains(steps.changed-files.outputs.modified_files, 'package.json')) || (contains(steps.changed-files.outputs.modified_files, 'package-lock.json')) }}" >> $GITHUB_ENV
           echo "deploy_change=${{ contains(steps.changed-files.outputs.modified_files, 'deployment.yaml')}}" >> $GITHUB_ENV
           echo "service_change=${{ contains(steps.changed-files.outputs.modified_files, 'service.yaml')}}" >> $GITHUB_ENV
           echo "hpa_change=${{ contains(steps.changed-files.outputs.modified_files, 'hpa.yaml')}}" >> $GITHUB_ENV
@@ -40,22 +38,26 @@ jobs:
         uses: liatrio/github-actions/apprentice-action@0b41561cca6822cc8d880fe0e49e7807a41fdf91
 
       - name: Log in to Docker
+        if: ${{ (env.node_change == 'true') }}
         env:
           docker_user: ${{secrets.DOCKER_USERNAME}}
           docker_pass: ${{secrets.DOCKER_PASSWORD}}
         run: docker login -u $docker_user -p $docker_pass
 
       - name: Push to Docker Hub
+        if: ${{ (env.index_change == 'true') }}
         run: |
           docker tag git-image conormgomes/liatrio_demo:$TIME_NOW
           docker push conormgomes/liatrio_demo:$TIME_NOW
 
       - name: Edit deployment.yaml
+        if: ${{ (env.index_change == 'true') || (env.deploy_change == 'true') }}
         run: |
           cp ./kube_configs/deployment.yaml ./kube_configs/deployment_old.yaml
           sed -r -i 's/conormgomes\/liatrio_demo:.*/conormgomes\/liatrio_demo:'$TIME_NOW'/' ./kube_configs/deployment.yaml
       
       - name: Authenticate AWS Credentials
+        if: ${{ (env.index_change == 'true') || (env.deploy_change == 'true') }}
         uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-region: us-west-2
@@ -63,53 +65,27 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
       - name: Install kubectl
+        if: ${{ (env.index_change == 'true') || (env.deploy_change == 'true') }}
         run: |
           sudo apt update
           sudo apt install snapd
           sudo snap install kubectl --classic
 
       - name: Connect AWS to kubectl
+        if: ${{ (env.index_change == 'true') || (env.deploy_change == 'true') }}
         run: |
           aws eks update-kubeconfig --region us-west-2 --name test-cluster
 
       - name: Update deployment with new image
+        if: ${{ (env.index_change == 'true') || (env.deploy_change == 'true') }}
         run: |
           kubectl apply -f ./kube_configs/deployment.yaml
 
       - name: Change deployment.yaml in repo
+        if: ${{ (env.index_change == 'true') || (env.deploy_change == 'true') }}
         run: |
           git config --global user.name 'conormgomes'
           git config --global user.email 'gomesconor@gmail.com'
           git add ./kube_configs/deployment.yaml ./kube_configs/deployment_old.yaml
           git commit -m "Automated update of deployment.yaml for Commit ${{ env.sha_short }} [skip actions]"
           git push origin main
-
-      - name: Test index
-        if: ${{ env.index_change == 'true' }}
-        run: |
-          echo "INDEX"
-
-      - name: Test package
-        if: ${{ env.package_change == 'true' }}
-        run: |
-          echo "PACKAGE"
-
-      - name: Test lock
-        if: ${{ env.lock_change == 'true' }}
-        run: |
-          echo "LOCK"
-
-      - name: Test deploy
-        if: ${{ env.deploy_change == 'true' }}
-        run: |
-          echo "DEPLOY"
-
-      - name: Test service
-        if: ${{ env.service_change == 'true' }}
-        run: |
-          echo "SERVICE"
-
-      - name: Test hpa
-        if: ${{ env.hpa_change == 'true' }}
-        run: |
-          echo "HPA"
