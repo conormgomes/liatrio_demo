@@ -39,6 +39,7 @@ jobs:
         run: docker login -u $docker_user -p $docker_pass
 
       - name: Push to Docker Hub
+        if: steps.testing.outcome == 'success'
         run: |
           docker tag git-image conormgomes/liatrio_demo:${{ inputs.TIME_NOW }}
           docker push conormgomes/liatrio_demo:${{ inputs.TIME_NOW }}
