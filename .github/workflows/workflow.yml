@@ -11,6 +11,24 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Generate tag number and commit hash
+        run: |
+          echo "TIME_NOW=$(date +%s)" >> $GITHUB_ENV
+          echo "sha_short=$(git rev-parse --short "$GITHUB_SHA")" >> "$GITHUB_ENV"
+
+      - name: Check file changes
+        id: changed-files
+        uses: tj-actions/changed-files@v45
+
+      - name: Generate change bools
+        run: |
+          echo "index_change=${{ contains(steps.changed-files.outputs.modified_files, 'index.js')}}" >> $GITHUB_ENV
+          echo "package_change=${{ contains(steps.changed-files.outputs.modified_files, 'package.json')}}" >> $GITHUB_ENV
+          echo "lock_change=${{ contains(steps.changed-files.outputs.modified_files, 'package-lock.json')}}" >> $GITHUB_ENV
+          echo "deploy_change=${{ contains(steps.changed-files.outputs.modified_files, 'deployment.yaml')}}" >> $GITHUB_ENV
+          echo "service_change=${{ contains(steps.changed-files.outputs.modified_files, 'service.yaml')}}" >> $GITHUB_ENV
+          echo "hpa_change=${{ contains(steps.changed-files.outputs.modified_files, 'hpa.yaml')}}" >> $GITHUB_ENV
+
       - name: Build Docker image
         run: docker build . -t git-image
 
@@ -26,11 +44,6 @@ jobs:
           docker_user: ${{secrets.DOCKER_USERNAME}}
           docker_pass: ${{secrets.DOCKER_PASSWORD}}
         run: docker login -u $docker_user -p $docker_pass
-
-      - name: Generate tag number and commit hash
-        run: |
-          echo "TIME_NOW=$(date +%s)" >> $GITHUB_ENV
-          echo "sha_short=$(git rev-parse --short "$GITHUB_SHA")" >> "$GITHUB_ENV"
 
       - name: Push to Docker Hub
         run: |
@@ -71,23 +84,32 @@ jobs:
           git commit -m "Automated update of deployment.yaml for Commit ${{ env.sha_short }} [skip actions]"
           git push origin main
 
-      - name: Check files changes
-        id: changed-files
-        uses: tj-actions/changed-files@v45
-        with:
-          files: |
-            kube_configs/**
-            index.js
-      
-      - name: Did they change?
-        if: steps.changed-files.outputs.any_changed == 'true'
+      - name: Test index
+        if: ${{ env.index_change }}
         run: |
-          echo "IT'S WORKING"
-          for file in ${{ steps.changed-files.outputs.all_changed_files }}; do
-            echo "$file was changed"
-          done
-      
-      - name: Individual file
-        if: ${{ contains(steps.changed-files.outputs.modified_files, 'deployment.yaml')}}
+          echo "INDEX"
+
+      - name: Test package
+        if: ${{ env.package_change }}
         run: |
-          echo "WAHOO"
+          echo "PACKAGE"
+
+      - name: Test lock
+        if: ${{ env.lock_change }}
+        run: |
+          echo "LOCK"
+
+      - name: Test deploy
+        if: ${{ env.deploy_change }}
+        run: |
+          echo "DEPLOY"
+
+      - name: Test service
+        if: ${{ env.service_change }}
+        run: |
+          echo "SERVICE"
+
+      - name: Test hpa
+        if: ${{ env.hpa_change }}
+        run: |
+          echo "HPA"
