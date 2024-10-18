@@ -10,7 +10,10 @@ jobs:
     outputs: 
       TIME_NOW: ${{ env.TIME_NOW }}
       sha_short: ${{ env.sha_short }}
-      node_changes: ${{ env.node_changes }}
+      node_change: ${{ env.node_change }}
+      deploy_change: ${{ env.deploy_change }}
+      service_change: ${{ env.service_change }}
+      hpa_change: ${{ env.hpa_change }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -34,49 +37,24 @@ jobs:
   docker-build-test-push:
     needs: [ generate-variables ]
     if: ${{ needs.generate-variables.outputs.node_change == 'true' }}
-    uses: ./.github/workflows/test_push.yaml
+    uses: ./.github/workflows/build_test_push.yaml
     with:
       TIME_NOW: ${{ needs.generate-variables.outputs.TIME_NOW }}
     secrets:
       DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
       DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
 
-      # - name: Edit deployment.yaml
-      #   if: ${{ (env.index_change == 'true') || (env.deploy_change == 'true') }}
-      #   run: |
-      #     cp ./kube_configs/deployment.yaml ./kube_configs/deployment_old.yaml
-      #     sed -r -i 's/conormgomes\/liatrio_demo:.*/conormgomes\/liatrio_demo:'$TIME_NOW'/' ./kube_configs/deployment.yaml
-      
-      # - name: Authenticate AWS Credentials
-      #   if: ${{ (env.index_change == 'true') || (env.deploy_change == 'true') }}
-      #   uses: aws-actions/configure-aws-credentials@v4
-      #   with:
-      #     aws-region: us-west-2
-      #     aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-      #     aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-
-      # - name: Install kubectl
-      #   if: ${{ (env.index_change == 'true') || (env.deploy_change == 'true') }}
-      #   run: |
-      #     sudo apt update
-      #     sudo apt install snapd
-      #     sudo snap install kubectl --classic
-
-      # - name: Connect AWS to kubectl
-      #   if: ${{ (env.index_change == 'true') || (env.deploy_change == 'true') }}
-      #   run: |
-      #     aws eks update-kubeconfig --region us-west-2 --name test-cluster
-
-      # - name: Update deployment with new image
-      #   if: ${{ (env.index_change == 'true') || (env.deploy_change == 'true') }}
-      #   run: |
-      #     kubectl apply -f ./kube_configs/deployment.yaml
-
-      # - name: Change deployment.yaml in repo
-      #   if: ${{ (env.index_change == 'true') || (env.deploy_change == 'true') }}
-      #   run: |
-      #     git config --global user.name 'conormgomes'
-      #     git config --global user.email 'gomesconor@gmail.com'
-      #     git add ./kube_configs/deployment.yaml ./kube_configs/deployment_old.yaml
-      #     git commit -m "Automated update of deployment.yaml for Commit ${{ env.sha_short }} [skip actions]"
-      #     git push origin main
+  deploy-to-k8s:
+    needs: [ generate-variables, docker-build-test-push ]
+    if: ${{ (needs.docker-build-test-push.result == success) || (needs.generate-variables.outputs.deploy_change == 'true') || (needs.generate-variables.outputs.service_change == 'true') || (needs.generate-variables.outputs.hpa_change == 'true') }}
+    uses: ./.github/workflows/k8s.yaml
+    with:
+      TIME_NOW: ${{ needs.generate-variables.outputs.TIME_NOW }}
+      sha_short: ${{ needs.generate-variables.outputs.sha_short }}
+      node_change: ${{ needs.generate-variables.outputs.node_change }}
+      deploy_change: ${{ needs.generate-variables.outputs.deploy_change }}
+      service_change: ${{ needs.generate-variables.outputs.service_change }}
+      hpa_change: ${{ needs.generate-variables.outputs.hpa_change }}
+    secrets:
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
