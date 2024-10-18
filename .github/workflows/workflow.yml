@@ -4,25 +4,20 @@ on:
   push:
     branches: [ main, workflow-testing ]
 
-env:
-  TIME_NOW:
-  sha_short:
-  node_change:
-  deploy_change:
-  service_change:
-  hpa_change:
-
 jobs:
   generate-variables:
     runs-on: ubuntu-22.04
+    outputs: 
+      TIME_NOW: ${{ env.TIME_NOW }}
+      sha_short: ${{ env.sha_short }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
       - name: Generate tag number and commit hash
         run: |
-          echo "TIME_NOW=$(date +%s)" >> $GITHUB_ENV
-          echo "sha_short=$(git rev-parse --short "$GITHUB_SHA")" >> "$GITHUB_ENV"
+          echo "TIME_NOW=$(date +%s)" >> "$GITHUB_OUTPUT"
+          echo "sha_short=$(git rev-parse --short "$GITHUB_SHA")" >> "$GITHUB_OUTPUT"
 
       - name: Check file changes
         id: changed-files
@@ -30,15 +25,15 @@ jobs:
 
       - name: Generate change bools
         run: |
-          echo "node_change=${{ (contains(steps.changed-files.outputs.modified_files, 'index.js')) || (contains(steps.changed-files.outputs.modified_files, 'package.json')) || (contains(steps.changed-files.outputs.modified_files, 'package-lock.json')) || (contains(steps.changed-files.outputs.modified_files, 'Dockerfile')) }}" >> $GITHUB_ENV
-          echo "deploy_change=${{ contains(steps.changed-files.outputs.modified_files, 'deployment.yaml')}}" >> $GITHUB_ENV
-          echo "service_change=${{ contains(steps.changed-files.outputs.modified_files, 'service.yaml')}}" >> $GITHUB_ENV
-          echo "hpa_change=${{ contains(steps.changed-files.outputs.modified_files, 'hpa.yaml')}}" >> $GITHUB_ENV
+          echo "node_change=${{ (contains(steps.changed-files.outputs.modified_files, 'index.js')) || (contains(steps.changed-files.outputs.modified_files, 'package.json')) || (contains(steps.changed-files.outputs.modified_files, 'package-lock.json')) || (contains(steps.changed-files.outputs.modified_files, 'Dockerfile')) }}" >> $GITHUB_OUTPUT
+          echo "deploy_change=${{ contains(steps.changed-files.outputs.modified_files, 'deployment.yaml')}}" >> $GITHUB_OUTPUT
+          echo "service_change=${{ contains(steps.changed-files.outputs.modified_files, 'service.yaml')}}" >> $GITHUB_OUTPUT
+          echo "hpa_change=${{ contains(steps.changed-files.outputs.modified_files, 'hpa.yaml')}}" >> $GITHUB_OUTPUT
 
-      - name: Testing
-        run: |
-          echo ${{ env.TIME_NOW }}
-          echo ${{ env.sha_short }} 
+      # - name: Testing
+      #   run: |
+      #     echo ${{ env.TIME_NOW }}
+      #     echo ${{ env.sha_short }} 
 
   test-scope:
     runs-on: ubuntu-22.04
@@ -49,8 +44,8 @@ jobs:
 
       - name: Testing
         run: |
-          echo ${{ env.TIME_NOW }}
-          echo ${{ env.sha_short }}      
+          echo ${{ needs.generate-variables.outputs.TIME_NOW }}
+          echo ${{ needs.generate-variables.outputs.sha_short }}      
 
       # - name: Build, Test, and Push Image
 
