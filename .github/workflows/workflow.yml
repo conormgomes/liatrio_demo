@@ -25,27 +25,19 @@ jobs:
 
       - name: Generate change bools
         run: |
-          echo "node_change=${{ (contains(steps.changed-files.outputs.modified_files, 'index.js')) || (contains(steps.changed-files.outputs.modified_files, 'package.json')) || (contains(steps.changed-files.outputs.modified_files, 'package-lock.json')) || (contains(steps.changed-files.outputs.modified_files, 'Dockerfile')) }}" >> $GITHUB_OUTPUT
-          echo "deploy_change=${{ contains(steps.changed-files.outputs.modified_files, 'deployment.yaml')}}" >> $GITHUB_OUTPUT
-          echo "service_change=${{ contains(steps.changed-files.outputs.modified_files, 'service.yaml')}}" >> $GITHUB_OUTPUT
-          echo "hpa_change=${{ contains(steps.changed-files.outputs.modified_files, 'hpa.yaml')}}" >> $GITHUB_OUTPUT
+          echo "node_change=${{ (contains(steps.changed-files.outputs.modified_files, 'index.js')) || (contains(steps.changed-files.outputs.modified_files, 'package.json')) || (contains(steps.changed-files.outputs.modified_files, 'package-lock.json')) || (contains(steps.changed-files.outputs.modified_files, 'Dockerfile')) }}" >> $GITHUB_ENV
+          echo "deploy_change=${{ contains(steps.changed-files.outputs.modified_files, 'deployment.yaml')}}" >> $GITHUB_ENV
+          echo "service_change=${{ contains(steps.changed-files.outputs.modified_files, 'service.yaml')}}" >> $GITHUB_ENV
+          echo "hpa_change=${{ contains(steps.changed-files.outputs.modified_files, 'hpa.yaml')}}" >> $GITHUB_ENV
 
-      # - name: Testing
-      #   run: |
-      #     echo ${{ env.TIME_NOW }}
-      #     echo ${{ env.sha_short }} 
-
-  test-scope:
-    runs-on: ubuntu-22.04
+  docker-build-test-push:
     needs: [ generate-variables ]
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Testing
-        run: |
-          echo ${{ needs.generate-variables.outputs.TIME_NOW }}
-          echo ${{ needs.generate-variables.outputs.sha_short }}      
+    uses: ./.github/workflows/test_push.yaml
+    with:
+      TIME_NOW: ${{ needs.generate-variables.outputs.TIME_NOW }}
+    secrets:
+      DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+      DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
 
       # - name: Build, Test, and Push Image
 
