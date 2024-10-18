@@ -85,31 +85,31 @@ jobs:
           git push origin main
 
       - name: Test index
-        if: ${{ env.index_change }}
+        if: ${{ env.index_change == 'true' }}
         run: |
           echo "INDEX"
 
       - name: Test package
-        if: ${{ env.package_change }}
+        if: ${{ env.package_change == 'true' }}
         run: |
           echo "PACKAGE"
 
       - name: Test lock
-        if: ${{ env.lock_change }}
+        if: ${{ env.lock_change == 'true' }}
         run: |
           echo "LOCK"
 
       - name: Test deploy
-        if: ${{ env.deploy_change }}
+        if: ${{ env.deploy_change == 'true' }}
         run: |
           echo "DEPLOY"
 
       - name: Test service
-        if: ${{ env.service_change }}
+        if: ${{ env.service_change == 'true' }}
         run: |
           echo "SERVICE"
 
       - name: Test hpa
-        if: ${{ env.hpa_change }}
+        if: ${{ env.hpa_change == 'true' }}
         run: |
           echo "HPA"
