@@ -42,6 +42,7 @@ jobs:
 
   test-scope:
     runs-on: ubuntu-22.04
+    needs: [ generate-variables ]
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
