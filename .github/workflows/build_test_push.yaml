@@ -1,0 +1,44 @@
+name: Test, Build, and Push Docker image
+
+on:
+  workflow_call:
+    inputs:
+      TIME_NOW: 
+        description: 'Timestamp used for tagging docker image'
+        required: true
+        type: string
+    secrets:
+      DOCKER_USERNAME:
+        description: 'Username for logging in to Dockerhub'
+        required: true
+      DOCKER_PASSWORD:
+        description: 'Password for logging in to Dockerhub'
+        required: true
+
+jobs:
+  build-test-push:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Build Docker image
+        run: docker build . -t git-image
+
+      - name: Spin up container
+        run: docker run -dp 172.17.0.1:80:80 git-image
+
+      - name: Run tests
+        id: testing
+        uses: liatrio/github-actions/apprentice-action@0b41561cca6822cc8d880fe0e49e7807a41fdf91
+
+      - name: Log in to Docker
+        env:
+          docker_user: ${{ secrets.DOCKER_USERNAME }}
+          docker_pass: ${{ secrets.DOCKER_PASSWORD }}
+        run: docker login -u $docker_user -p $docker_pass
+
+      - name: Push to Docker Hub
+        run: |
+          docker tag git-image conormgomes/liatrio_demo:${{ inputs.TIME_NOW }}
+          docker push conormgomes/liatrio_demo:${{ inputs.TIME_NOW }}

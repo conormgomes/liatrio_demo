@@ -1,0 +1,91 @@
+name: Deploy to Kubernetes
+
+on:
+  workflow_call:
+    inputs:
+      TIME_NOW: 
+        description: 'Timestamp used docker image tag'
+        required: true
+        type: string
+      sha_short:
+        description: 'Hash for current commit'
+        required: true
+        type: string
+      node_change:
+        description: 'Whether or not the node app has been changed'
+        required: true
+        type: string
+      deploy_change:
+        description: 'Whether or not deployment.yaml has been changed'
+        required: true
+        type: string
+      service_change:
+        description: 'Whether or not service.yaml has been changed'
+        required: true
+        type: string
+      hpa_change:
+        description: 'Whether or not hpa.yaml has been changed'
+        required: true
+        type: string
+    secrets:
+      AWS_ACCESS_KEY_ID:
+        description: 'Access key to log in to AWS'
+        required: true
+      AWS_SECRET_ACCESS_KEY:
+        description: 'Secret key to log in to AWS'
+        required: true
+
+jobs:
+  deployment:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Authenticate AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-region: us-west-2
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+      - name: Install kubectl
+        run: |
+          sudo apt update
+          sudo apt install snapd
+          sudo snap install kubectl --classic
+
+      - name: Connect AWS to kubectl
+        run: |
+          aws eks update-kubeconfig --region us-west-2 --name test-cluster
+
+      - name: Edit deployment.yaml with new image
+        id: file-edit
+        if: ${{ (inputs.node_change == 'true') }}
+        run: |
+          cp ./kube_configs/deployment.yaml ./kube_configs/deployment_old.yaml
+          sed -r -i 's/conormgomes\/liatrio_demo:.*/conormgomes\/liatrio_demo:'${{ inputs.TIME_NOW }}'/' ./kube_configs/deployment.yaml
+
+      - name: Change deployment.yaml in repo
+        if: steps.file-edit.outcome == 'success'
+        run: |
+          git config --global user.name 'conormgomes'
+          git config --global user.email 'gomesconor@gmail.com'
+          git add ./kube_configs/deployment.yaml ./kube_configs/deployment_old.yaml
+          git commit -m "Automated update of deployment.yaml for Commit ${{ inputs.sha_short }} [skip actions]"
+          git push origin main
+      
+      - name: Update deployment
+        if: ${{ (steps.file-edit.outcome == 'success') || (inputs.deploy_change == 'true') }}
+        run: |
+          kubectl apply -f ./kube_configs/deployment.yaml
+
+      - name: Update service
+        if: ${{ (inputs.service_change == 'true') }}
+        run: |
+          kubectl apply -f ./kube_configs/service.yaml
+
+      - name: Update hpa
+        if: ${{ (env.hpa_change == 'true') }}
+        run: |
+          kubectl apply -f ./kube_configs/hpa.yaml
