@@ -28,7 +28,7 @@ spec:
             weight: 50
       containers:
         - name: node-app
-          image: conormgomes/liatrio_demo:1729214117
+          image: conormgomes/liatrio_demo:1729215094
           ports:
             - containerPort: 80
           imagePullPolicy: Always
