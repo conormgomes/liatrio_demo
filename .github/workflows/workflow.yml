@@ -10,6 +10,7 @@ jobs:
     outputs: 
       TIME_NOW: ${{ env.TIME_NOW }}
       sha_short: ${{ env.sha_short }}
+      node_changes: ${{ env.node_changes }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -32,37 +33,13 @@ jobs:
 
   docker-build-test-push:
     needs: [ generate-variables ]
+    if: ${{ needs.generate-variables.outputs.node_change == 'true' }}
     uses: ./.github/workflows/test_push.yaml
     with:
       TIME_NOW: ${{ needs.generate-variables.outputs.TIME_NOW }}
     secrets:
       DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
       DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
-
-      # - name: Build, Test, and Push Image
-
-      # - name: Build Docker image
-      #   run: docker build . -t git-image
-
-      # - name: Spin up container
-      #   run: docker run -dp 172.17.0.1:80:80 git-image
-
-      # - name: Run tests
-      #   id: testing
-      #   uses: liatrio/github-actions/apprentice-action@0b41561cca6822cc8d880fe0e49e7807a41fdf91
-
-      # - name: Log in to Docker
-      #   if: ${{ (env.node_change == 'true') }}
-      #   env:
-      #     docker_user: ${{secrets.DOCKER_USERNAME}}
-      #     docker_pass: ${{secrets.DOCKER_PASSWORD}}
-      #   run: docker login -u $docker_user -p $docker_pass
-
-      # - name: Push to Docker Hub
-      #   if: ${{ (env.index_change == 'true') }}
-      #   run: |
-      #     docker tag git-image conormgomes/liatrio_demo:$TIME_NOW
-      #     docker push conormgomes/liatrio_demo:$TIME_NOW
 
       # - name: Edit deployment.yaml
       #   if: ${{ (env.index_change == 'true') || (env.deploy_change == 'true') }}
