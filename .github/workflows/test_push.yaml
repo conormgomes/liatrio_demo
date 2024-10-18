@@ -40,5 +40,5 @@ jobs:
 
       - name: Push to Docker Hub
         run: |
-          docker tag git-image conormgomes/liatrio_demo:$TIME_NOW
-          docker push conormgomes/liatrio_demo:$TIME_NOW
+          docker tag git-image conormgomes/liatrio_demo:${{ inputs.TIME_NOW }}
+          docker push conormgomes/liatrio_demo:${{ inputs.TIME_NOW }}
