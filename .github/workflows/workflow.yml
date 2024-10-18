@@ -2,7 +2,7 @@ name: Pipeline
 
 on:
   push:
-    branches: [ main, workflow-testing ]
+    branches: [ main ]
 
 jobs:
   generate-variables:
