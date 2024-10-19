@@ -9,7 +9,7 @@ RUN npm install
 
 FROM gcr.io/distroless/nodejs20-debian12
 
-USER 1000
+# USER 1000
 
 WORKDIR /app
 
