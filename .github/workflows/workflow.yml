@@ -46,7 +46,7 @@ jobs:
 
   deploy-to-k8s:
     needs: [ generate-variables, docker-build-test-push ]
-    if: ${{ (needs.docker-build-test-push.result != 'failure') || (needs.generate-variables.outputs.deploy_change == 'true') || (needs.generate-variables.outputs.service_change == 'true') || (needs.generate-variables.outputs.hpa_change == 'true') }}
+    if: ${{ (needs.docker-build-test-push.result == 'success') || (needs.docker-build-test-push.result == 'skipped') || (needs.generate-variables.outputs.deploy_change == 'true') || (needs.generate-variables.outputs.service_change == 'true') || (needs.generate-variables.outputs.hpa_change == 'true') }}
     uses: ./.github/workflows/k8s.yaml
     with:
       TIME_NOW: ${{ needs.generate-variables.outputs.TIME_NOW }}
