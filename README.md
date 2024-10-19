@@ -18,9 +18,9 @@ eksctl delete cluster --name {}
 
 ## Pulling Docker container from Dockerhub and running:
 ```bash
-docker pull conormgomes/liatrio_demo:latest
+docker pull conormgomes/liatrio_demo:{}
 
-docker run -dp 127.0.0.1:80:80 conormgomes/liatrio_demo:latest
+docker run -dp 127.0.0.1:80:80 conormgomes/liatrio_demo:{}
 ```
 
 ## Building and Running Docker container from local files:
