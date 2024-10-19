@@ -4,11 +4,11 @@ metadata:
   name: node-deployment
 spec:
   replicas: 3
-  strategy:
-    type: RollingUpdate
-    rollingUpdate:
-      maxSurge: 50%
-      maxUnavailable: 66%
+  # strategy:
+  #   type: RollingUpdate
+  #   rollingUpdate:
+  #     maxSurge: 50%
+  #     maxUnavailable: 66%
   selector:
     matchLabels: 
       app: node-app
@@ -17,15 +17,15 @@ spec:
       labels:
         app: node-app
     spec:
-      # affinity:
-      #   podAntiAffinity:
-      #     preferredDuringSchedulingIgnoredDuringExecution:
-      #     - podAffinityTerm:
-      #         labelSelector:
-      #           matchLabels:
-      #             app: node-app
-      #         topologyKey: kubernetes.io/hostname
-      #       weight: 50
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - podAffinityTerm:
+              labelSelector:
+                matchLabels:
+                  app: node-app
+              topologyKey: kubernetes.io/hostname
+            weight: 50
       containers:
         - name: node-app
           image: conormgomes/liatrio_demo:1729294938
