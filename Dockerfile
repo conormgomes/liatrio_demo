@@ -6,9 +6,11 @@ COPY index.js package.json package-lock.json /app
 
 RUN npm install
 
-RUN chmod 777 index.js &&
-	chmod 777 package.json &&
-	chmod 777 package-lock.json
+RUN chmod 777 index.js
+
+RUN chmod 777 package.json
+
+RUN chmod 777 package-lock.json
 
 
 FROM gcr.io/distroless/nodejs20-debian12
